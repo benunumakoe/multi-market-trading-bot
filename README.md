@@ -1,3 +1,6 @@
+[![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/trading-bot-dashboard)](https://github.com/YOUR_USERNAME/trading-bot-dashboard/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/YOUR_USERNAME/trading-bot-dashboard)](https://github.com/YOUR_USERNAME/trading-bot-dashboard/network)
+[![GitHub issues](https://img.shields.io/github/issues/YOUR_USERNAME/trading-bot-dashboard)](https://github.com/YOUR_USERNAME/trading-bot-dashboard/issues)
 # Athena Trading Core - Multi-Timeframe Signal Engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
