@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Athena Trading Core | Multi-Timeframe Signals & Real-Time Execution</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Athena Core | Signal Generator + Real-Time Multi-Timeframe Engine</title>
     <!-- Google Fonts + Font Awesome -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -29,27 +29,62 @@
             margin: 0 auto;
         }
 
-        /* header */
+        /* header with control button */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             margin-bottom: 28px;
-            background: rgba(5, 12, 22, 0.6);
+            background: rgba(5, 12, 22, 0.7);
             backdrop-filter: blur(12px);
             padding: 16px 28px;
             border-radius: 48px;
-            border: 1px solid rgba(0, 200, 255, 0.2);
+            border: 1px solid rgba(0, 200, 255, 0.25);
+            gap: 16px;
         }
 
         .title h1 {
             font-weight: 800;
             font-size: 1.9rem;
-            background: linear-gradient(135deg, #ffffff, #3bc9ff, #845ef7);
+            background: linear-gradient(135deg, #ffffff, #3bc9ff, #a855f7);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+        }
+
+        .title p {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(95deg, #1a2a3f, #0f172f);
+            border: 1px solid rgba(0, 200, 255, 0.6);
+            border-radius: 60px;
+            padding: 10px 24px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            background: #1f3b4f;
+            border-color: #3bc9ff;
+            transform: scale(0.97);
+            box-shadow: 0 0 12px rgba(59,201,255,0.4);
         }
 
         .risk-pulse {
@@ -58,6 +93,7 @@
             padding: 8px 24px;
             border-right: 3px solid #ff7e5e;
             text-align: center;
+            min-width: 180px;
         }
 
         .risk-score {
@@ -67,7 +103,6 @@
             color: #ffbc6e;
         }
 
-        /* signal strength bar */
         .signal-bar {
             width: 100%;
             height: 6px;
@@ -76,10 +111,10 @@
             margin-top: 6px;
         }
 
-        /* grid layout */
+        /* asset cards grid */
         .assets-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
             gap: 22px;
             margin-bottom: 30px;
         }
@@ -164,11 +199,6 @@
             justify-content: space-between;
         }
 
-        .vol-tag {
-            font-family: monospace;
-            font-size: 0.7rem;
-        }
-
         .chart-large {
             background: rgba(5, 12, 22, 0.65);
             backdrop-filter: blur(10px);
@@ -182,7 +212,7 @@
             background: #030811cc;
             border-radius: 28px;
             padding: 18px;
-            height: 240px;
+            height: 250px;
             overflow-y: auto;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
@@ -204,9 +234,19 @@
             font-size: 0.65rem;
         }
 
+        button:active {
+            transform: scale(0.96);
+        }
+
         @keyframes pulse {
             0% { opacity: 0.7; }
             100% { opacity: 1; text-shadow: 0 0 3px currentColor; }
+        }
+        .refresh-icon {
+            transition: transform 0.2s;
+        }
+        .refresh-btn:active .refresh-icon {
+            transform: rotate(180deg);
         }
     </style>
 </head>
@@ -214,14 +254,18 @@
 <div class="dashboard">
     <div class="header">
         <div class="title">
-            <h1><i class="fas fa-brain"></i> ATHENA · MULTI-TIMEFRAME SIGNAL ENGINE</h1>
-            <div style="font-size: 0.75rem; margin-top: 5px;">real-time | crypto · commodities · forex | tension-aware signals (1m,5m,15m,1h)</div>
+            <h1><i class="fas fa-brain"></i> ATHENA · SIGNAL GENERATOR</h1>
+            <div style="font-size: 0.75rem; margin-top: 5px;">real-time | 1m,5m,15m,1h | manual refresh + auto stream</div>
         </div>
-        <div class="risk-pulse">
-            <div><i class="fas fa-globe"></i> GEOPOLITICAL STRESS INDEX</div>
-            <div class="risk-score" id="geoRiskScore">48.3</div>
-            <div class="signal-bar"><div id="riskFill" style="width:48%; height:100%; background:#ff884d; border-radius:4px;"></div></div>
-            <span style="font-size: 0.65rem;">circuit: >72 = reduced risk</span>
+        <div class="action-group">
+            <button class="refresh-btn" id="manualRefreshBtn">
+                <i class="fas fa-sync-alt refresh-icon"></i> GENERATE & REFRESH SIGNALS
+            </button>
+            <div class="risk-pulse">
+                <div><i class="fas fa-globe"></i> GEOPOLITICAL STRESS</div>
+                <div class="risk-score" id="geoRiskScore">48.3</div>
+                <div class="signal-bar"><div id="riskFill" style="width:48%; height:100%; background:#ff884d; border-radius:4px;"></div></div>
+            </div>
         </div>
     </div>
 
@@ -246,13 +290,13 @@
         <div style="margin-bottom: 12px;"><i class="fas fa-terminal"></i> MULTI-TIMEFRAME SIGNAL LOG & EXECUTION</div>
         <div id="logFeed">
             <div class="log-entry">🤖 [system] Multi-timeframe agent active: 1m (scalp), 5m (intraday), 15m (swing), 1h (trend)</div>
-            <div class="log-entry">📡 Real-time market data streaming — fast commodities prioritized</div>
+            <div class="log-entry">🔘 Manual refresh button ready — click to regenerate signals on demand</div>
         </div>
     </div>
 </div>
 
 <script>
-    // -------------------- ASSET DEFINITION (focus on commodities + crypto + forex) --------------------
+    // -------------------- ASSET DEFINITION --------------------
     const ASSETS = [
         { id: "XAUUSD", name: "Gold", group: "commodity", basePrice: 2338.60, vol: 0.0022, digits: 2, icon: "fas fa-coins", color: "#f7b731" },
         { id: "XAGUSD", name: "Silver", group: "commodity", basePrice: 28.12, vol: 0.0034, digits: 3, icon: "fas fa-gem", color: "#b0c4de" },
@@ -265,10 +309,12 @@
     // -------------------- GLOBAL STATE --------------------
     let currentPrices = {};
     let prevPrices = {};
-    let priceHistory = {};     // stores array of prices for each asset (for multi-TF signal generation)
+    let priceHistory = {};     // stores array of prices for each asset (for multi-TF signal)
     let geoRisk = 48.3;
     let riskDrift = 0.18;
     let circuitBreaker = false;
+    let realtimeInterval = null;
+    let isManualRefreshRequest = false;   // flag to show extra log on manual action
 
     // Chart instance for Gold
     let goldChartCtx = null;
@@ -277,16 +323,18 @@
     // DOM elements
     const assetsGrid = document.getElementById("assetsGrid");
     const logFeed = document.getElementById("logFeed");
+    const manualBtn = document.getElementById("manualRefreshBtn");
 
-    // Helper: add log
+    // Helper: add log (type: 'info', 'alert', 'manual')
     function addLog(message, type = "info") {
         const div = document.createElement("div");
         div.className = "log-entry";
         if (type === "alert") div.style.borderLeftColor = "#ff9f43";
+        if (type === "manual") div.style.borderLeftColor = "#3bc9ff";
         const time = new Date().toLocaleTimeString('en-US', { hour12: false });
         div.innerHTML = `<span style="color:#7f8fa6;">[${time}]</span> ${message}`;
         logFeed.prepend(div);
-        if (logFeed.children.length > 38) logFeed.removeChild(logFeed.lastChild);
+        if (logFeed.children.length > 42) logFeed.removeChild(logFeed.lastChild);
     }
 
     // Update geopolitical risk with realistic "tense" drift
@@ -320,7 +368,6 @@
             addLog(`⚡ GEOPOLITICAL SPIKE: ${asset.name} volatility surge!`, "alert");
         }
         let newP = oldPrice * (1 + drift + randomWalk + jump);
-        // boundaries
         if (asset.id === "XAUUSD") newP = Math.min(2580, Math.max(2160, newP));
         if (asset.id === "XAGUSD") newP = Math.min(36.2, Math.max(24.5, newP));
         if (asset.id === "WTI") newP = Math.min(118, Math.max(64, newP));
@@ -330,17 +377,14 @@
         return newP;
     }
 
-    // Multi-timeframe signal calculation using price history (1m,5m,15m,1h simulated bars)
-    // We maintain rolling window of prices: last 60 points ~ 60 seconds. For higher TFs we downsample
+    // Multi-timeframe signal calculation using price history
     function getSignalsForAsset(assetId, priceArray) {
-        if (!priceArray || priceArray.length < 20) return { m1: "NEUTRAL", m5: "NEUTRAL", m15: "NEUTRAL", h1: "NEUTRAL", strength: 0 };
-        // 1m = last 2 changes (momentum based on recent 10 sec)
+        if (!priceArray || priceArray.length < 20) return { m1: "NEUTRAL", m5: "NEUTRAL", m15: "NEUTRAL", h1: "NEUTRAL", strength: 0, consensus: "NEUTRAL", m1_change: 0 };
         let lastPrice = priceArray[priceArray.length-1];
         let prev1 = priceArray[priceArray.length-3] || priceArray[0];
         let m1_change = (lastPrice - prev1) / prev1;
-        // 5min = average of last 12 points (approx 5 sec per point? Actually each update ~0.5 sec simulation -> but for realism we use chunk of ~20 points)
         let len = priceArray.length;
-        let m5_start = priceArray[Math.max(0, len-24)];  // ~12 sec? But we treat as relative strength: bigger window
+        let m5_start = priceArray[Math.max(0, len-24)];
         let m5_change = (lastPrice - m5_start) / m5_start;
         let m15_start = priceArray[Math.max(0, len-45)];
         let m15_change = (lastPrice - m15_start) / m15_start;
@@ -359,17 +403,16 @@
         let strength = Math.abs(longCount - shortCount);
         return { m1: m1_sig, m5: m5_sig, m15: m15_sig, h1: h1_sig, consensus, strength, m1_change, m5_change };
     }
-
-    // Render asset cards with multi-timeframe signals dynamically
-    function renderAssets() {
+    
+    // Core render: draws cards with latest price + signals + optional manual override flag
+    function renderAssets(isManual = false) {
         assetsGrid.innerHTML = "";
         for (let asset of ASSETS) {
             const price = currentPrices[asset.id] || asset.basePrice;
             const prev = prevPrices[asset.id] || price;
             const changePct = ((price - prev) / prev) * 100;
             const history = priceHistory[asset.id] || [];
-            const signals = getSignalsForAsset(asset.id, history);
-            // adjust if circuit breaker is active: override consensus to "NEUTRAL" when risk high & not extreme
+            let signals = getSignalsForAsset(asset.id, history);
             let finalConsensus = signals.consensus;
             if (circuitBreaker && Math.abs(changePct) < 0.9) finalConsensus = "NEUTRAL";
             
@@ -396,12 +439,17 @@
             `;
             assetsGrid.appendChild(card);
             
-            // Generate real-time signal log (once per asset if strong signal & TF alignment)
-            if (signals.strength >= 3 && !circuitBreaker && (Math.abs(signals.m1_change) > 0.0015)) {
-                addLog(`📊 SIGNAL: ${asset.name} → ${finalConsensus} CONFLUENCE | 1m:${signals.m1} 5m:${signals.m5} 15m:${signals.m15} | Risk-adjusted entry`, "alert");
-            } else if (signals.strength >= 2 && asset.group === "commodity" && Math.abs(signals.m1_change) > 0.0012) {
-                addLog(`🔥 FAST COMMODITY: ${asset.name} ${finalConsensus} signal triggered on multiple timeframes.`);
+            // Condition for real-time logs: avoid log spam but show significant signals (strength>=2) or manual refresh
+            if (signals.strength >= 2 && !circuitBreaker && Math.abs(signals.m1_change) > 0.001 && !isManual) {
+                addLog(`📊 SIGNAL: ${asset.name} → ${finalConsensus} confluence | 1m:${signals.m1} 5m:${signals.m5} 15m:${signals.m15}`, "alert");
+            } else if (signals.strength >= 2 && isManual) {
+                addLog(`🔘 [MANUAL] ${asset.name} force-refreshed signal: ${finalConsensus} (strength ${signals.strength}/4)`, "manual");
+            } else if (isManual && signals.strength === 1) {
+                addLog(`🔄 [MANUAL] ${asset.name} signals recalculated → ${finalConsensus}`, "manual");
             }
+        }
+        if (isManual) {
+            addLog(`✨ Manual signal generation complete — all timeframes refreshed (${new Date().toLocaleTimeString()})`, "manual");
         }
     }
     
@@ -413,7 +461,7 @@
             let currentPx = currentPrices[asset.id];
             if (currentPx) {
                 hist.push(currentPx);
-                if (hist.length > 120) hist.shift(); // keep last ~120 updates (~60sec real-time simulation)
+                if (hist.length > 120) hist.shift();
             }
         }
     }
@@ -428,7 +476,6 @@
             goldChartCtx.data.datasets[0].data = [...goldPriceArray];
             goldChartCtx.update('none');
         }
-        // update vol metric
         if (goldPriceArray.length > 15) {
             let rets = [];
             for (let i=1; i<goldPriceArray.length; i++) {
@@ -440,15 +487,14 @@
             document.getElementById("volRealTime").innerHTML = annualized.toFixed(2) + "%";
         }
         document.getElementById("chartLiveTime").innerHTML = new Date().toLocaleTimeString();
-        // global confluence from gold signals
         let goldSignals = getSignalsForAsset("XAUUSD", priceHistory["XAUUSD"] || []);
         document.getElementById("globalConfluence").innerHTML = goldSignals.consensus;
     }
     
-    // main market update (prices and multi-timeframe refresh)
-    function marketUpdate() {
+    // core market update (prices + standard signals)
+    function marketUpdate(isManualTrigger = false) {
         updateGeopoliticalRisk();
-        // store previous prices
+        // store prev prices
         for (let asset of ASSETS) {
             prevPrices[asset.id] = currentPrices[asset.id] !== undefined ? currentPrices[asset.id] : asset.basePrice;
         }
@@ -459,8 +505,23 @@
             currentPrices[asset.id] = newPx;
         }
         updatePriceHistories();
-        renderAssets();
+        // render signals with optional manual flag
+        renderAssets(isManualTrigger);
         updateGoldChart();
+    }
+    
+    // dedicated manual refresh handler: force signal regeneration without changing price simulation
+    function handleManualRefresh() {
+        // Force a re-evaluation of signals based on existing price history (no price movement needed, but we can also slightly nudge to reflect new analysis)
+        // to give feeling of fresh calculation we re-render using existing state but with manual flag
+        // we also recalc risk but keep continuity
+        updateGeopoliticalRisk();   // slight update to risk dynamic
+        // preserve price history but re-render signals with fresh analysis (same data, but force logs)
+        renderAssets(true);
+        // additionally update confluence text
+        let goldSignals = getSignalsForAsset("XAUUSD", priceHistory["XAUUSD"] || []);
+        document.getElementById("globalConfluence").innerHTML = goldSignals.consensus;
+        addLog("🎯 SIGNAL GENERATOR: Multi-timeframe analysis recalculated (1m/5m/15m/1h) using latest market context", "manual");
     }
     
     // Initialize Chart.js
@@ -498,16 +559,24 @@
             prevPrices[asset.id] = asset.basePrice;
             priceHistory[asset.id] = [asset.basePrice];
         }
-        renderAssets();
+        renderAssets(false);
     }
     
-    // start real-time engine (fast refresh for multi-timeframe sensitivity ~ 400ms)
-    let intervalId;
+    // start real-time engine
     function startEngine() {
-        if (intervalId) clearInterval(intervalId);
-        intervalId = setInterval(() => {
-            marketUpdate();
-        }, 380);
+        if (realtimeInterval) clearInterval(realtimeInterval);
+        realtimeInterval = setInterval(() => {
+            marketUpdate(false);
+        }, 400);
+    }
+    
+    // attach manual button
+    function bindManualButton() {
+        if (manualBtn) {
+            manualBtn.addEventListener("click", () => {
+                handleManualRefresh();
+            });
+        }
     }
     
     // bootstrap
@@ -515,8 +584,9 @@
         initPrices();
         initGoldChart();
         startEngine();
-        addLog("✨ ATHENA engine online — Real-time multi-timeframe signals (1m,5m,15m,1h) active.");
-        addLog("📈 Tension-aware volatility model: commodities prioritized, circuit breaker integrated.");
+        bindManualButton();
+        addLog("✨ ATHENA engine online — real-time multi-timeframe signals active. Use 'GENERATE & REFRESH SIGNALS' for instant signal re-evaluation.");
+        addLog("📈 Tension-aware volatility model + manual signal regeneration ready.");
     });
 </script>
 </body>
